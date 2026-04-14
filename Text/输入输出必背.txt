@@ -1,0 +1,479 @@
+荣耀 Honor OJ · 输入输出必背模板
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+一、输入基础
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【读取所有内容（最常用）】★★★★★
+  data = sys.stdin.read().split()
+  # data 是所有 token 的列表（按空格/换行分割）
+  # 然后按需取用
+
+【逐行读取】
+  for line in sys.stdin:
+      line = line.strip()
+      # 处理每一行
+
+【一行多个整数】★★★★★
+  a, b = map(int, sys.stdin.readline().split())
+  # 或
+  arr = list(map(int, sys.stdin.readline().split()))
+
+【多行，每行若干数】
+  n = int(sys.stdin.readline())
+  mat = []
+  for _ in range(n):
+      row = list(map(int, sys.stdin.readline().split()))
+      mat.append(row)
+
+【不确定行数】★★★★★
+  while True:
+      try:
+          line = sys.stdin.readline()
+          if not line:
+              break
+          # 处理 line
+      except EOFError:
+          break
+
+  # 或用 sys.stdin.read() 一次性读
+  lines = sys.stdin.read().strip().split('\n')
+  for line in lines:
+      ...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+二、矩阵输入（常考）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【n行m列整数矩阵】★★★★★
+  n, m = map(int, sys.stdin.readline().split())
+  mat = [list(map(int, sys.stdin.readline().split())) for _ in range(n)]
+
+【稀疏矩阵（行 列 值）】★★★★★
+  # 例：边列表输入
+  # 3 3  表示 n=3, m=3
+  # 1 2 5  表示 (1,2) 位置值为5
+  n, m = map(int, sys.stdin.readline().split())
+  k = int(sys.stdin.readline())
+  mat = [[0]*m for _ in range(n)]
+  for _ in range(k):
+      r, c, v = map(int, sys.stdin.readline().split())
+      mat[r][c] = v
+
+【树/图的邻接表】★★★★★
+  n = int(sys.stdin.readline())
+  g = [[] for _ in range(n)]
+  for _ in range(n-1):
+      u, v = map(int, sys.stdin.readline().split())
+      g[u].append(v)
+      g[v].append(u)
+
+【树/图的邻接矩阵】★★★★★
+  n = int(sys.stdin.readline())
+  g = [[0]*n for _ in range(n)]
+  for i in range(n):
+      row = list(map(int, sys.stdin.readline().split()))
+      for j, v in enumerate(row):
+          g[i][j] = v
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+三、输出格式（必考细节）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【逐行打印列表】
+  print(*result)              # 空格分隔，无括号
+  print(' '.join(map(str, result)))   # 同上
+  # 输出: 1 2 3 4 5
+
+【带空格/换行的二维矩阵】★★★★★
+  for row in mat:
+      print(' '.join(map(str, row)))
+  # 输出:
+  # 1 2 3
+  # 4 5 6
+
+【每行末尾不要多余空格】★★★★★
+  for row in mat:
+      print(' '.join(str(x) for x in row))
+  # 不要用 print(' '.join(map(str, row)) + ' ') 加空格
+
+【换行分隔 vs 不换行】
+  print(x, end='')      # 不换行
+  print(x, end=' ')    # 空格分隔不换行
+  print()               # 手动换行
+
+【一行一个整数】★★★★★
+  for x in result:
+      print(x)
+
+【格式化输出（浮点数）】★★★★★
+  print(f'{value:.2f}')      # 保留2位小数
+  print(f'{ans:.4f}')      # 保留4位小数
+  print(f'{ans:.0f}')      # 取整（不四舍五入）
+  print(round(ans, 2))      # 四舍五入到2位
+
+【多值空格分隔输出】★★★★★
+  print(a, b, c)            # 默认空格分隔，换行
+  print(a, b, c, sep=',')  # 逗号分隔
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+四、常见输入模式总结
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【模式1：首行n，后面n行】
+  n = int(sys.stdin.readline())
+  for _ in range(n):
+      process(sys.stdin.readline())
+
+【模式2：T组测试用例】★★★★★
+  T = int(sys.stdin.readline())
+  for _ in range(T):
+      # 读取一组数据
+      data = sys.stdin.readline().split()
+      ...
+
+【模式3：输入以空行结束】
+  lines = sys.stdin.read().strip().split('\n')
+  # 处理每行，注意过滤空行
+  for line in lines:
+      if not line.strip():
+          continue
+      ...
+
+【模式4：多行不定长，EOF结束】★★★★★
+  data = sys.stdin.read().split()
+  # 一口气读完，按需解析
+  # 常用：data[0]=n, data[1]=m, 后面是矩阵元素
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+五、Python I/O 注意事项
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. 牛客/OJ 必须用 sys.stdin.read / sys.stdin.readline，不要用 input()
+     （input() 比 sys.stdin 慢很多）
+
+  2. print 是默认带换行的，多行输出用循环逐行 print
+
+  3. 读入数字后立刻转 int/float，不要存成字符串再转
+
+  4. 读二维矩阵前，先读 n 和 m 确定行列数
+
+  5. 输出时注意行末不要带多余空格，OJ 可能会严格比对
+
+  6. 如果输出是浮点数，题目没说精度时用默认 print() 即可
+
+  7. 多行输出，每行单独 print()，不要用一个 print() 加 \n
+
+【极速读入模板（大数据量时用）】
+  import sys
+  data = sys.stdin.buffer.read().split()
+  # data 是 bytes 列表，转数字：
+  it = iter(data)
+  n = int(next(it))
+  nums = [int(next(it)) for _ in range(n)]
+  # 比 input() 快 3-5 倍
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+六、常用 Class 模板（链表 / 树 / 图 / 堆）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【单链表节点】
+  class ListNode:
+      def __init__(self, val=0, next=None):
+          self.val = val
+          self.next = next
+
+  # 头插法建链
+  dummy = ListNode()
+  for x in values:
+      dummy.next = ListNode(x, dummy.next)
+
+  # 遍历
+  cur = dummy.next
+  while cur:
+      print(cur.val)
+      cur = cur.next
+
+【双链表节点】
+  class DListNode:
+      def __init__(self, val=0, prev=None, next=None):
+          self.val = val
+          self.prev = prev
+          self.next = next
+
+【二叉树节点】★★★★★
+  class TreeNode:
+      def __init__(self, val=0, left=None, right=None):
+          self.val = val
+          self.left = left
+          self.right = right
+
+  # 从列表构造二叉树（层序）
+  def build_tree(arr):
+      if not arr:
+          return None
+      nodes = [None] + [TreeNode(v) if v is not None else None for v in arr]
+      for i in range(1, len(nodes)//2 + 1):
+          node = nodes[i]
+          if not node:
+              continue
+          l = 2*i; r = 2*i+1
+          node.left  = nodes[l] if l < len(nodes) else None
+          node.right = nodes[r] if r < len(nodes) else None
+      return nodes[1]
+
+  # 前序遍历
+  def preorder(root):
+      if not root:
+          return
+      print(root.val)
+      preorder(root.left)
+      preorder(root.right)
+
+  # 中序遍历
+  def inorder(root):
+      if not root:
+          return
+      inorder(root.left)
+      print(root.val)
+      inorder(root.right)
+
+  # 后序遍历
+  def postorder(root):
+      if not root:
+          return
+      postorder(root.left)
+      postorder(root.right)
+      print(root.val)
+
+  # 层序遍历（BFS）
+  from collections import deque
+  def level_order(root):
+      if not root:
+          return []
+      q = deque([root])
+      res = []
+      while q:
+          node = q.popleft()
+          res.append(node.val)
+          if node.left:
+              q.append(node.left)
+          if node.right:
+              q.append(node.right)
+      return res
+
+【并查集（Union-Find）】★★★★★
+  class UnionFind:
+      def __init__(self, n):
+          self.parent = list(range(n))
+          self.rank = [0]*n
+
+      def find(self, x):
+          if self.parent[x] != x:
+              self.parent[x] = self.find(self.parent[x])   # 路径压缩
+          return self.parent[x]
+
+      def union(self, x, y):
+          px, py = self.find(x), self.find(y)
+          if px == py:
+              return
+          # 按秩合并
+          if self.rank[px] < self.rank[py]:
+              px, py = py, px
+          self.parent[py] = px
+          if self.rank[px] == self.rank[py]:
+              self.rank[px] += 1
+
+  # 常用场景：岛屿数量、无向图连通分量、最小生成树（Kruskal）
+
+【最小堆 / 最大堆】★★★★★
+  import heapq
+
+  # 最小堆（默认）
+  heap = []
+  heapq.heappush(heap, val)
+  min_val = heapq.heappop(heap)
+
+  # 最大堆（取反）
+  heap = []
+  heapq.heappush(heap, -val)
+  max_val = -heapq.heappop(heap)
+
+  # 从列表建堆
+  heapq.heapify(arr)
+
+  # 堆排序
+  arr = [3,1,4,1,5]
+  heapq.heapify(arr)
+  sorted_arr = [heapq.heappop(arr) for _ in range(len(arr))]
+
+  # 找第K大（保持大小K的小顶堆）
+  heap = []
+  for num in nums:
+      heapq.heappush(heap, num)
+      if len(heap) > k:
+          heapq.heappop(heap)
+  kth_largest = heap[0]
+
+【图节点（邻接表用）】★★★★★
+  class GraphNode:
+      def __init__(self, val=0, neighbors=None):
+          self.val = val
+          self.neighbors = neighbors or []
+
+  # 建图（无向）
+  n = int(input())
+  nodes = [GraphNode(i) for i in range(n)]
+  for u, v in edges:
+      nodes[u].neighbors.append(nodes[v])
+      nodes[v].neighbors.append(nodes[u])
+
+  # BFS
+  from collections import deque
+  def bfs(start):
+      visited = {start}
+      q = deque([start])
+      while q:
+          node = q.popleft()
+          for nxt in node.neighbors:
+              if nxt not in visited:
+                  visited.add(nxt)
+                  q.append(nxt)
+
+  # DFS
+  def dfs(node, visited):
+      visited.add(node)
+      for nxt in node.neighbors:
+          if nxt not in visited:
+              dfs(nxt, visited)
+
+【字典树（Trie）】★★★★★
+  class TrieNode:
+      def __init__(self):
+          self.children = {}
+          self.is_end = False
+
+  class Trie:
+      def __init__(self):
+          self.root = TrieNode()
+
+      def insert(self, word):
+          node = self.root
+          for ch in word:
+              if ch not in node.children:
+                  node.children[ch] = TrieNode()
+              node = node.children[ch]
+          node.is_end = True
+
+      def search(self, word):
+          node = self.root
+          for ch in word:
+              if ch not in node.children:
+                  return False
+              node = node.children[ch]
+          return node.is_end
+
+      def startsWith(self, prefix):
+          node = self.root
+          for ch in prefix:
+              if ch not in node.children:
+                  return False
+              node = node.children[ch]
+          return True
+
+  # 场景：前缀匹配、字符串检索、IP地址路由
+
+【栈帧（单调栈常用）】
+  # 单调递减栈（求下一个更大元素）
+  def next_greater(nums):
+      stack = []
+      res = [-1]*len(nums)
+      for i in range(len(nums)):
+          while stack and nums[i] > nums[stack[-1]]:
+              res[stack.pop()] = nums[i]
+          stack.append(i)
+      return res
+
+  # 单调递增栈（求下一个更小元素）
+  def next_smaller(nums):
+      stack = []
+      res = [-1]*len(nums)
+      for i in range(len(nums)):
+          while stack and nums[i] < nums[stack[-1]]:
+              res[stack.pop()] = nums[i]
+          stack.append(i)
+      return res
+
+【线段树（区间查询）】★★★★★
+  class SegTree:
+      def __init__(self, arr):
+          self.n = len(arr)
+          self.tree = [0]*(4*self.n)
+          self._build(arr, 0, 0, self.n-1)
+
+      def _build(self, arr, idx, l, r):
+          if l == r:
+              self.tree[idx] = arr[l]
+              return
+          mid = (l+r)//2
+          self._build(arr, idx*2+1, l, mid)
+          self._build(arr, idx*2+2, mid+1, r)
+          self.tree[idx] = self.tree[idx*2+1] + self.tree[idx*2+2]
+
+      def query(self, ql, qr):
+          return self._query(0, 0, self.n-1, ql, qr)
+
+      def _query(self, idx, l, r, ql, qr):
+          if ql <= l and r <= qr:
+              return self.tree[idx]
+          mid = (l+r)//2
+          res = 0
+          if ql <= mid:
+              res += self._query(idx*2+1, l, mid, ql, qr)
+          if qr > mid:
+              res += self._query(idx*2+2, mid+1, r, ql, qr)
+          return res
+
+      def update(self, pos, val):
+          self._update(0, 0, self.n-1, pos, val)
+
+      def _update(self, idx, l, r, pos, val):
+          if l == r:
+              self.tree[idx] = val
+              return
+          mid = (l+r)//2
+          if pos <= mid:
+              self._update(idx*2+1, l, mid, pos, val)
+          else:
+              self._update(idx*2+2, mid+1, r, pos, val)
+          self.tree[idx] = self.tree[idx*2+1] + self.tree[idx*2+2]
+
+  # 场景：区间和查询、单点更新（O(log n)），替代前缀和 O(1) 但支持修改
+
+【树状数组（Fenwick Tree）】★★★★★
+  class BIT:
+      def __init__(self, arr):
+          self.n = len(arr)
+          self.bit = [0]*(self.n+1)
+          for i, v in enumerate(arr, 1):
+              self.bit[i] += v
+              j = i + (i & -i)
+              if j <= self.n:
+                  self.bit[j] += self.bit[i]
+
+      def prefix_sum(self, idx):    # 1-indexed
+          res = 0
+          while idx > 0:
+              res += self.bit[idx]
+              idx -= idx & -idx
+          return res
+
+      def range_sum(self, l, r):
+          return self.prefix_sum(r) - self.prefix_sum(l-1)
+
+      def add(self, idx, delta):
+          while idx <= self.n:
+              self.bit[idx] += delta
+              idx += idx & -idx
+
+  # 场景：动态前缀和、单点更新（比线段树更快更好写）

@@ -1,0 +1,809 @@
+================================================================================
+          荣耀 Honor 算法工程师 笔试小抄 · 基础与编程篇
+================================================================================
+
+■ 笔试基本信息
+  - 3道编程题，分值 100 + 200 + 300 = 600分
+  - 100分即可进面试（第一题做出来基本稳了）
+  - 语言：C/C++/Java/Python，Python最方便
+  - 平台：牛客网OJ，注意输入输出格式
+
+================================================================================
+一、必须熟练的高频模板（第一题最爱考）
+================================================================================
+
+1. 多行输入处理（最最最常用）
+--------------------------------------------------------------------------------
+    import sys
+    data = sys.stdin.read().strip().split()
+    # data 是所有token的列表，按需转换类型
+
+    # 或者一行一读：
+    for line in sys.stdin:
+        line = line.strip()
+        parts = line.split()
+        # ...
+
+    # 矩阵输入：
+    n = int(data[0])
+    mat = []
+    idx = 1
+    for i in range(n):
+        row = list(map(int, data[idx:idx+n]))
+        mat.append(row)
+        idx += n
+
+2. 进制转换（N进制→K进制）
+--------------------------------------------------------------------------------
+    def convert_base(num_s, n, k):
+        val = int(num_s, n)
+        if val == 0: return "0"
+        digits = "0123456789ABCDEF"
+        res = []
+        while val > 0:
+            res.append(digits[val % k])
+            val //= k
+        return ''.join(reversed(res))
+
+    def is_palindrome(s):
+        return s == s[::-1]
+
+3. 日期处理
+--------------------------------------------------------------------------------
+    def is_leap(year):
+        return (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0)
+
+    def add_days(y, m, d, delta):
+        import datetime
+        dt = datetime.date(y, m, d) + datetime.timedelta(days=delta)
+        return dt.year, dt.month, dt.day
+
+4. 字符串展开（"a3b2" → "aaabb"）
+--------------------------------------------------------------------------------
+    def expand(s):
+        res, i = [], 0
+        while i < len(s):
+            j = i + 1
+            while j < len(s) and s[j].isdigit():
+                j += 1
+            res.append(s[i] * int(s[i+1:j]))
+            i = j
+        return ''.join(res)
+
+5. 滑动窗口（无重复字符最长子串）
+--------------------------------------------------------------------------------
+    def length_of_longest_substring(s):
+        last = {}
+        left = ans = 0
+        for right, ch in enumerate(s):
+            if ch in last and last[ch] >= left:
+                left = last[ch] + 1
+            last[ch] = right
+            ans = max(ans, right - left + 1)
+        return ans
+
+================================================================================
+二、矩阵与字符串的输入输出（第一题高频送分点）
+================================================================================
+
+5b. 矩阵输入（常见格式）
+--------------------------------------------------------------------------------
+    # 格式1: 先给n m，再逐行矩阵
+    # 输入：
+    # 3 4
+    # 1 2 3 4
+    # 5 6 7 8
+    # 9 10 11 12
+
+    import sys
+    data = sys.stdin.read().strip().split()
+    n, m = int(data[0]), int(data[1])
+    mat = []
+    idx = 2
+    for i in range(n):
+        row = list(map(int, data[idx:idx+m]))
+        mat.append(row)
+        idx += m
+
+    # 格式2: 每行给出长度（链表/树的输入）
+    # 4
+    # 1 2 3 4
+    # 2 3
+    # 3 4 5
+
+    n = int(sys.stdin.readline().strip())
+    rows = []
+    for _ in range(n):
+        row = list(map(int, sys.stdin.readline().strip().split()))
+        rows.append(row)
+
+    # 格式3: 二维字符串矩阵（如迷宫）
+    # 5
+    # #####
+    # #@..#
+    # #..@#
+    # #####
+
+    n = int(sys.stdin.readline().strip())
+    grid = [list(sys.stdin.readline().strip()) for _ in range(n)]
+
+5c. 字符串输入（常见格式）
+--------------------------------------------------------------------------------
+    # 格式1: 一行字符串（可能含空格）
+    s = sys.stdin.readline().strip()
+    # 若保留空格：
+    s = sys.stdin.readline().rstrip('\n')
+
+    # 格式2: 多个字符串，逐行读取
+    # 3
+    # abc
+    # def
+    # ghi
+
+    n = int(sys.stdin.readline().strip())
+    strs = [sys.stdin.readline().strip() for _ in range(n)]
+
+    # 格式3: 字符串数组（逗号/空格分隔）
+    # [1, 2, 3] 或 1 2 3
+
+    s = sys.stdin.readline().strip()
+    items = [x.strip() for x in s.strip('[]').split(',')]  # 处理[1, 2, 3]
+    # 或
+    items = s.split()
+
+    # 格式4: 字符矩阵（逐字符读）
+    # 3
+    # abc
+    # def
+
+    n = int(sys.stdin.readline().strip())
+    chars = [list(sys.stdin.readline().strip()) for _ in range(n)]
+
+5d. 删去特殊字符 / 字符过滤处理
+--------------------------------------------------------------------------------
+    # 删除所有非字母数字字符（保留字母和数字）
+    import re
+    s = "a!b@c#1$2%3"
+    clean = re.sub(r'[^a-zA-Z0-9]', '', s)       # "ab123"
+    clean = ''.join(ch for ch in s if ch.isalnum())  # 无regex版
+
+    # 只保留数字
+    digits = ''.join(ch for ch in s if ch.isdigit())  # "123"
+
+    # 删除所有空白字符（空格/换行/制表符）
+    s = s.replace(' ', '').replace('\n', '').replace('\t', '')
+
+    # 删除指定字符集
+    remove_set = set('!@#$%^&*()')
+    clean = ''.join(ch for ch in s if ch not in remove_set)
+
+    # 字符串中删除所有数字
+    no_digits = ''.join(ch for ch in s if not ch.isdigit())  # "abc"
+
+    # 去除首尾空格，中间保留（常用）
+    s = s.strip()
+
+    # 去除多余空格（多个空格→单个空格）
+    s = ' '.join(s.split())   # "a  b  c" → "a b c"
+
+    # 删除子串（如删除所有"ab"）
+    s = s.replace('ab', '')
+
+    # 字符串过滤转小写（忽略大小写匹配）
+    def filter_str(s, allowed_chars):
+        return ''.join(ch for ch in s if ch in allowed_chars)
+
+    # 处理转义字符（如协议报文中的\x）
+    # 输入: "abc\xFF\x00def"，要识别\x后两位十六进制
+    def parse_escape(raw):
+        res, i = [], 0
+        while i < len(raw):
+            if raw[i:i+2] == r'\x' and i+4 <= len(raw):
+                res.append(chr(int(raw[i+2:i+4], 16)))
+                i += 4
+            else:
+                res.append(raw[i])
+                i += 1
+        return ''.join(res)
+
+5e. 矩阵输出
+--------------------------------------------------------------------------------
+    # 打印矩阵（每行空格分隔，行末无多余空格）
+    for row in mat:
+        print(' '.join(map(str, row)))
+
+    # 打印矩阵（每行无分隔，直接紧凑）
+    for row in mat:
+        print(''.join(map(str, row)))
+
+    # 打印二维字符串矩阵
+    for row in grid:
+        print(''.join(row))
+
+    # 打印链表形式：1->2->3->None
+    def print_list(head):
+        cur = head
+        res = []
+        while cur:
+            res.append(str(cur.val))
+            cur = cur.next
+        res.append('None')
+        print('->'.join(res))
+
+================================================================================
+三、LeetCode 高频题型（第二题常考）
+================================================================================
+
+6. 合并区间（LeetCode 56/435）
+--------------------------------------------------------------------------------
+    def merge(intervals):
+        if not intervals: return []
+        intervals.sort(key=lambda x: x[0])
+        merged = [intervals[0]]
+        for s, e in intervals[1:]:
+            if s <= merged[-1][1]:
+                merged[-1][1] = max(merged[-1][1], e)
+            else:
+                merged.append([s, e])
+        return merged
+
+7. 最小路径和（DP，荣耀2025真题）
+--------------------------------------------------------------------------------
+    def min_path_sum(grid):
+        m, n = len(grid), len(grid[0])
+        dp = [0] * n
+        for i in range(m):
+            for j in range(n):
+                if i == 0 and j == 0: dp[j] = grid[i][j]
+                elif i == 0: dp[j] += grid[i][j]
+                elif j == 0: dp[j] += grid[i][j]
+                else: dp[j] = min(dp[j], dp[j-1]) + grid[i][j]
+        return dp[n-1]
+
+8. 双指针（两数之和、有序数组）
+--------------------------------------------------------------------------------
+    def two_sum(nums, target):
+        left, right = 0, len(nums) - 1
+        while left < right:
+            s = nums[left] + nums[right]
+            if s == target: return [left+1, right+1]
+            elif s < target: left += 1
+            else: right -= 1
+        return []
+
+9. LIS（最长递增子序列，贪心+二分）
+--------------------------------------------------------------------------------
+    def length_of_LIS(nums):
+        import bisect
+        dp = []
+        for x in nums:
+            i = bisect.bisect_left(dp, x)
+            if i == len(dp): dp.append(x)
+            else: dp[i] = x
+        return len(dp)
+
+    # 记录路径版本
+    def LIS_path(nums):
+        import bisect
+        dp = []
+        pos = []
+        prev = [-1]
+        for x in nums:
+            i = bisect.bisect_left(dp, x)
+            if i == len(dp):
+                dp.append(x); pos.append(len(prev)); prev.append(-1)
+            else:
+                dp[i] = x; pos.append(i); prev.append(dp[i-1] if i else -1)
+        # 逆推路径...
+        return len(dp)
+
+10. 前缀和（区间求和，O(1)查询）
+--------------------------------------------------------------------------------
+    pre = [0]
+    for x in nums: pre.append(pre[-1] + x)
+    # [l, r] 的和 = pre[r+1] - pre[l]
+
+================================================================================
+四、回溯 / DFS / BFS（第三题常考）
+================================================================================
+
+11. 全排列（回溯模板）
+--------------------------------------------------------------------------------
+    def permute(nums):
+        res = []
+        def backtrack(start):
+            if start == len(nums):
+                res.append(nums[:])
+                return
+            for i in range(start, len(nums)):
+                nums[start], nums[i] = nums[i], nums[start]
+                backtrack(start + 1)
+                nums[start], nums[i] = nums[i], nums[start]
+        backtrack(0)
+        return res
+
+12. 全排列（含重复字符去重）
+--------------------------------------------------------------------------------
+    def permute_unique(s):
+        res = []
+        s = sorted(s)
+        used = [False] * len(s)
+        def dfs(path):
+            if len(path) == len(s):
+                res.append(''.join(path))
+                return
+            for i in range(len(s)):
+                if used[i]: continue
+                if i > 0 and s[i] == s[i-1] and not used[i-1]: continue
+                used[i] = True
+                path.append(s[i])
+                dfs(path)
+                path.pop()
+                used[i] = False
+        dfs([])
+        return res
+
+13. 组合总和
+--------------------------------------------------------------------------------
+    def combination_sum(candidates, target):
+        res = []
+        def dfs(start, path, remain):
+            if remain < 0: return
+            if remain == 0: res.append(path[:]); return
+            for i in range(start, len(candidates)):
+                path.append(candidates[i])
+                dfs(i, path, remain - candidates[i])
+                path.pop()
+        dfs(0, [], target)
+        return res
+
+14. BFS 最短路径（网格/图）
+--------------------------------------------------------------------------------
+    from collections import deque
+    def bfs(grid, start, end):
+        m, n = len(grid), len(grid[0])
+        visited = [[False]*n for _ in range(m)]
+        q = deque([(start[0], start[1], 0)])
+        visited[start[0]][start[1]] = True
+        dirs = [(0,1),(0,-1),(1,0),(-1,0)]
+        while q:
+            x, y, dist = q.popleft()
+            if [x, y] == end: return dist
+            for dx, dy in dirs:
+                nx, ny = x+dx, y+dy
+                if 0<=nx<m and 0<=ny<n and not visited[nx][ny]:
+                    visited[nx][ny] = True
+                    q.append((nx, ny, dist+1))
+        return -1
+
+15. DFS 岛屿问题（经典）
+--------------------------------------------------------------------------------
+    def num_islands(grid):
+        if not grid: return 0
+        m, n = len(grid), len(grid[0])
+        def dfs(i, j):
+            if not (0<=i<m and 0<=j<n) or grid[i][j] == '0': return
+            grid[i][j] = '0'
+            for dx, dy in [(0,1),(0,-1),(1,0),(-1,0)]:
+                dfs(i+dx, j+dy)
+        count = 0
+        for i in range(m):
+            for j in range(n):
+                if grid[i][j] == '1':
+                    dfs(i, j); count += 1
+        return count
+
+16. 拓扑排序
+--------------------------------------------------------------------------------
+    from collections import deque
+    def topo_sort(n, edges):
+        graph = [[] for _ in range(n)]
+        indeg = [0]*n
+        for u, v in edges:
+            graph[u].append(v); indeg[v] += 1
+        q = deque([i for i in range(n) if indeg[i]==0])
+        order = []
+        while q:
+            u = q.popleft(); order.append(u)
+            for v in graph[u]:
+                indeg[v] -= 1
+                if indeg[v] == 0: q.append(v)
+        return order if len(order)==n else []
+
+================================================================================
+五、动态规划（必须背住几种形式）
+================================================================================
+
+17. 0-1背包DP
+--------------------------------------------------------------------------------
+    def knapsack(weights, values, capacity):
+        dp = [0]*(capacity+1)
+        for i in range(len(weights)):
+            for j in range(capacity, weights[i]-1, -1):
+                dp[j] = max(dp[j], dp[j-weights[i]] + values[i])
+        return dp[capacity]
+
+18. 完全背包（每种物品无限用）
+--------------------------------------------------------------------------------
+    def complete_knapsack(weights, values, capacity):
+        dp = [0]*(capacity+1)
+        for i in range(len(weights)):
+            for j in range(weights[i], capacity+1):
+                dp[j] = max(dp[j], dp[j-weights[i]] + values[i])
+        return dp[capacity]
+
+19. 编辑距离（LeetCode 72）
+--------------------------------------------------------------------------------
+    def minDistance(word1, word2):
+        m, n = len(word1), len(word2)
+        dp = [[0]*(n+1) for _ in range(m+1)]
+        for i in range(m+1): dp[i][0] = i
+        for j in range(n+1): dp[0][j] = j
+        for i in range(1, m+1):
+            for j in range(1, n+1):
+                if word1[i-1] == word2[j-1]:
+                    dp[i][j] = dp[i-1][j-1]
+                else:
+                    dp[i][j] = 1 + min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])
+        return dp[m][n]
+
+20. 乘积最大子数组
+--------------------------------------------------------------------------------
+    def maxProduct(nums):
+        max_f = min_f = ans = nums[0]
+        for i in range(1, len(nums)):
+            mx, mn = max_f, min_f
+            max_f = max(mx*nums[i], mx*nums[i], nums[i])
+            min_f = min(mn*nums[i], mx*nums[i], nums[i])
+            ans = max(ans, max_f)
+        return ans
+
+21. 最大子序和（LeetCode 53）
+--------------------------------------------------------------------------------
+    def maxSubArray(nums):
+        max_sum = cur = nums[0]
+        for x in nums[1:]:
+            cur = max(x, cur + x)
+            max_sum = max(max_sum, cur)
+        return max_sum
+
+22. 环形数组最大子序和（LeetCode 918）
+--------------------------------------------------------------------------------
+    def maxSubarraySumCircular(nums):
+        total = sum(nums)
+        # 普通最大子序和
+        def max_kadane(a):
+            cur = ma = a[0]
+            for x in a[1:]:
+                cur = max(x, cur+x); ma = max(ma, cur)
+            return ma
+        max_kad = max_kadane(nums)
+        # 最小子序和
+        min_kad = -max_kadane([-x for x in nums])
+        if total == min_kad: return max_kad
+        return max(max_kad, total - min_kad)
+
+23. 接雨水（LeetCode 42，双指针）
+--------------------------------------------------------------------------------
+    def trap(height):
+        if not height: return 0
+        left, right = 0, len(height)-1
+        left_max = right_max = 0
+        water = 0
+        while left < right:
+            if height[left] < height[right]:
+                if height[left] >= left_max: left_max = height[left]
+                else: water += left_max - height[left]
+                left += 1
+            else:
+                if height[right] >= right_max: right_max = height[right]
+                else: water += right_max - height[right]
+                right -= 1
+        return water
+
+24. 最长公共子序列 LCS
+--------------------------------------------------------------------------------
+    def lcs(s1, s2):
+        m, n = len(s1), len(s2)
+        dp = [[0]*(n+1) for _ in range(m+1)]
+        for i in range(1, m+1):
+            for j in range(1, n+1):
+                if s1[i-1] == s2[j-1]:
+                    dp[i][j] = dp[i-1][j-1] + 1
+                else:
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+        return dp[m][n]
+
+25. 股票买卖最佳时机（通用版）
+--------------------------------------------------------------------------------
+    def maxProfit(k, prices):
+        if not prices: return 0
+        n = len(prices)
+        if k >= n//2:
+            return sum(max(0, prices[i]-prices[i-1]) for i in range(1, n))
+        buy = [-float('inf')]*(k+1)
+        sell = [0]*(k+1)
+        for price in prices:
+            for j in range(1, k+1):
+                buy[j] = max(buy[j], sell[j-1]-price)
+                sell[j] = max(sell[j], buy[j]+price)
+        return sell[k]
+
+================================================================================
+六、字符串高频算法
+================================================================================
+
+26. KMP 模式匹配（O(n+m)）
+--------------------------------------------------------------------------------
+    def kmp(text, pattern):
+        def build_lps(p):
+            lps = [0]*len(p)
+            length = 0; i = 1
+            while i < len(p):
+                if p[i] == p[length]:
+                    length += 1; lps[i] = length; i += 1
+                else:
+                    if length != 0: length = lps[length-1]
+                    else: lps[i] = 0; i += 1
+            return lps
+
+        lps = build_lps(pattern)
+        i = j = 0
+        while i < len(text):
+            if text[i] == pattern[j]:
+                i += 1; j += 1
+                if j == len(pattern): return i - j
+            else:
+                if j != 0: j = lps[j-1]
+                else: i += 1
+        return -1
+
+27. 最长回文子串（Manacher，O(n)）
+--------------------------------------------------------------------------------
+    def manacher(s):
+        t = '#' + '#'.join(s) + '#'
+        n = len(t)
+        p = [0]*n
+        c = r = 0
+        for i in range(n):
+            if i < r: p[i] = min(r-i, p[2*c-i])
+            while i-p[i]-1 >= 0 and i+p[i]+1 < n and t[i-p[i]-1] == t[i+p[i]+1]:
+                p[i] += 1
+            if i+p[i] > r: c, r = i, i+p[i]
+        max_len, center = max((v, i) for i, v in enumerate(p))
+        start = (center - max_len)//2
+        return s[start:start+max_len]
+
+28. 字符串异位词分组
+--------------------------------------------------------------------------------
+    from collections import defaultdict
+    def group_anagrams(strs):
+        groups = defaultdict(list)
+        for s in strs:
+            key = ''.join(sorted(s))
+            groups[key].append(s)
+        return list(groups.values())
+
+29. 最短覆盖子串（滑动窗口变体，LeetCode 76）
+--------------------------------------------------------------------------------
+    from collections import Counter
+    def min_window(s, target):
+        need = Counter(target)
+        window = {}
+        left = valid = 0
+        start, length = 0, float('inf')
+        for right, ch in enumerate(s):
+            if ch in need:
+                window[ch] = window.get(ch, 0) + 1
+                if window[ch] <= need[ch]: valid += 1
+            while valid == len(need):
+                if right-left+1 < length:
+                    start, length = left, right-left+1
+                ch_left = s[left]
+                if ch_left in need:
+                    if window[ch_left] == need[ch_left]: valid -= 1
+                    window[ch_left] -= 1
+                left += 1
+        return s[start:start+length] if length != float('inf') else ""
+
+30. 编辑距离（字符串相似度）
+--------------------------------------------------------------------------------
+    def edit_distance(s1, s2):
+        m, n = len(s1), len(s2)
+        dp = [[0]*(n+1) for _ in range(m+1)]
+        for i in range(m+1): dp[i][0] = i
+        for j in range(n+1): dp[0][j] = j
+        for i in range(1, m+1):
+            for j in range(1, n+1):
+                if s1[i-1] == s2[j-1]: dp[i][j] = dp[i-1][j-1]
+                else: dp[i][j] = 1 + min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])
+        return dp[m][n]
+
+31. 字符串循环移位检测
+--------------------------------------------------------------------------------
+    def is_rotation(s1, s2):
+        if len(s1) != len(s2): return False
+        return s2 in (s1 + s1)
+
+32. 大数加法（字符串数字）
+--------------------------------------------------------------------------------
+    def big_add(a, b):
+        i, j, carry = len(a)-1, len(b)-1, 0
+        res = []
+        while i>=0 or j>=0 or carry:
+            da = int(a[i]) if i>=0 else 0
+            db = int(b[j]) if j>=0 else 0
+            total = da + db + carry
+            res.append(str(total%10)); carry = total//10
+            i-=1; j-=1
+        return ''.join(reversed(res))
+
+================================================================================
+七、数据结构操作
+================================================================================
+
+33. 堆（Top-K）
+--------------------------------------------------------------------------------
+    import heapq
+    def top_k_smallest(arr, k): return heapq.nsmallest(k, arr)
+
+    # 固定堆大小版（大顶堆）
+    def top_k(arr, k):
+        heap = []
+        for x in arr:
+            heapq.heappush(heap, -x)
+            if len(heap) > k: heapq.heappop(heap)
+        return [-x for x in heap]
+
+34. 并查集
+--------------------------------------------------------------------------------
+    class UnionFind:
+        def __init__(self, n):
+            self.parent = list(range(n))
+            self.rank = [0]*n
+        def find(self, x):
+            if self.parent[x] != x:
+                self.parent[x] = self.find(self.parent[x])
+            return self.parent[x]
+        def union(self, x, y):
+            px, py = self.find(x), self.find(y)
+            if px == py: return
+            if self.rank[px] < self.rank[py]: px, py = py, px
+            self.parent[py] = px
+            if self.rank[px] == self.rank[py]: self.rank[px] += 1
+
+35. 单链表反转
+--------------------------------------------------------------------------------
+    def reverse_list(head):
+        prev = cur = None
+        while cur:
+            nxt = cur.next
+            cur.next = prev
+            prev = cur; cur = nxt
+        return prev
+
+36. 快慢指针（链表环检测）
+--------------------------------------------------------------------------------
+    def has_cycle(head):
+        slow = fast = head
+        while fast and fast.next:
+            slow = slow.next; fast = fast.next.next
+            if slow == fast: return True
+        return False
+
+37. 合并有序链表
+--------------------------------------------------------------------------------
+    def mergeTwoLists(l1, l2):
+        dummy = ListNode(0); cur = dummy
+        while l1 and l2:
+            if l1.val <= l2.val: cur.next = l1; l1 = l1.next
+            else: cur.next = l2; l2 = l2.next
+            cur = cur.next
+        cur.next = l1 or l2
+        return dummy.next
+
+38. LRUCache（哈希+双向链表，O(1)）
+--------------------------------------------------------------------------------
+    from collections import OrderedDict
+    class LRUCache:
+        def __init__(self, capacity):
+            self.cap = capacity
+            self.cache = OrderedDict()
+        def get(self, key):
+            if key not in self.cache: return -1
+            self.cache.move_to_end(key)
+            return self.cache[key]
+        def put(self, key, value):
+            if key in self.cache: self.cache.move_to_end(key)
+            self.cache[key] = value
+            if len(self.cache) > self.cap: self.cache.popitem(last=False)
+
+================================================================================
+九、解题技巧（★★★★★ 考场救命用）
+================================================================================
+
+39. 看到"子数组/子序列和最大" → 贪心 or 动态规划
+    → 最大子序和：cur = max(x, cur+x)，O(n)
+    → 要求返回具体位置：前缀和 + 哈希表存最小前缀
+
+40. 看到"最短/最小/最多"路径 → 动态规划 or BFS
+    → 网格图 → BFS（无权图最短路）
+    → 有权重 → Dijkstra
+    → 只能向下/右走 → 空间压缩DP
+
+41. 看到"所有组合/所有方案" → 回溯 or 动态规划
+    → 数量少 → 回溯爆搜
+    → 数量爆炸 → 看有无重叠子问题，考虑DP
+
+42. 看到"重复子结构" → 动态规划
+    → 先写状态定义，再写转移方程，最后优化空间
+
+43. 看到"排序数组/查找" → 二分查找
+    → O(log n) 必二分
+    → 找边界：while left < right，mid 决策
+
+44. 看到"区间重叠/合并" → 先排序，再贪心
+    → 按起点排序，维护当前区间右端
+
+45. 看到"树/图的遍历" → DFS or BFS
+    → 找所有路径 → DFS
+    → 最短路径 → BFS
+    → 有环/拓扑 → 拓扑排序
+
+46. 看到"字符串匹配" → KMP / 滑动窗口
+    → 无重复 → 滑动窗口
+    → 有模式 → KMP
+    → 多模式 → Trie树
+
+47. 看到"最大化/最小化 + 约束" → 贪心 or 动态规划
+    → 背包问题 → DP
+    → 活动选择 → 贪心（按结束时间排序）
+
+48. 看到"第K个最大/最小" → 堆 or 快速选择
+    → Top-K → 堆（O(n log K)）或快速选择（O(n)）
+    → 中位数 → 堆或快速选择
+
+49. 实在想不出来 → 暴力搜索（BFS/DFS/回溯）
+    → 先拿部分分，再想办法剪枝优化
+
+50. 边界情况必查
+    → 空输入 []
+    → 单个元素
+    → 全相同 [1,1,1,1]
+    → 正负交替 [-1,1,-1,1]
+    → 最大值溢出（C/Java用long long）
+
+================================================================================
+十、考前必背 Checklist
+================================================================================
+
+□ 进制转换 + 回文判断
+□ 滑动窗口最长无重复子串
+□ 合并区间
+□ 最小路径和（一维DP）
+□ LIS（贪心+二分）
+□ 前缀和
+□ 全排列（含去重）
+□ 组合总和
+□ BFS/DFS 岛屿问题
+□ 拓扑排序
+□ 0-1背包DP
+□ 完全背包DP
+□ 编辑距离
+□ 最大子序和
+□ 接雨水（双指针）
+□ LCS最长公共子序列
+□ KMP
+□ Manacher
+□ 异位词分组
+□ 最短覆盖子串
+□ 堆Top-K
+□ 并查集
+□ 单链表反转
+□ 快慢指针环检测
+□ LRUCache
+□ 多行输入输出处理
+
+================================================================================
+          祝你笔试顺利，一遍过！
+================================================================================
