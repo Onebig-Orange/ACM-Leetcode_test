@@ -1,0 +1,306 @@
+荣耀 Honor 算法工程师 · ML/DL 小抄（精简版）
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+一、评估指标 ★★★★★（几乎必考）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【混淆矩阵】
+              预测正例    预测负例
+    真实正例     TP         FN
+    真实负例     FP         TN
+
+  Accuracy  = (TP+TN) / (TP+TN+FP+FN)
+  Precision = TP / (TP+FP)                  查准率
+  Recall    = TP / (TP+FN)                  查全率/召回率
+  F1        = 2·P·R / (P+R)                调和平均
+
+【AUC】★★★★★
+  含义：随机抽一正一负，正例得分高于负例的概率
+
+  python代码：
+    import numpy as np
+    from sklearn.metrics import roc_auc_score
+    y_true = np.array([0,0,1,1])
+    y_score = np.array([0.1,0.4,0.35,0.8])
+    auc = roc_auc_score(y_true, y_score)
+
+  手算（排序法）：
+    ① 按得分降序排列
+    ② 正例 rank 求和：sum_pos_rank
+    ③ AUC = (sum_pos_rank - n_pos·(n_pos+1)/2) / (n_pos × n_neg)
+
+  快速判断：AUC≈0.9极好 / 0.7一般 / 0.5等于瞎猜
+
+【多分类加权指标】★★★★（荣耀2024/2025真题）
+  加权精确率 = Σ (类别i样本数/总样本数 × 类别i精确率)
+  加权召回率 = Σ (类别i样本数/总样本数 × 类别i召回率)
+  加权F1     = 2 × 加权P × 加权R / (加权P + 加权R)
+
+  python代码：
+    from sklearn.metrics import classification_report
+    print(classification_report(y_true, y_pred, digits=4))
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+二、线性回归与正则化 ★★★
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【最小二乘法解析解】
+  损失：L(w) = ||Xw - y||²
+  解：  w* = (XᵀX)⁻¹ Xᵀy
+
+  python代码：
+    import numpy as np
+    w = np.linalg.inv(X.T @ X) @ X.T @ y   # 解析解
+    # 或
+    w = np.linalg.lstsq(X, y, rcond=None)[0]  # 最小二乘
+
+【岭回归（L2正则化）】★★★★
+  损失：L(w) = ||Xw - y||² + λ||w||²
+  解：  w* = (XᵀX + λI)⁻¹ Xᵀy
+
+  python代码：
+    from sklearn.linear_model import Ridge
+    model = Ridge(alpha=1.0)
+    model.fit(X, y)
+
+  L1 (Lasso) → 稀疏解（特征选择）；L2 (Ridge) → 平滑解
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+三、分类模型 ★★★
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【逻辑回归】
+  sigmoid: σ(z) = 1 / (1 + e⁻ᶻ)
+  损失：L = -[y·log(ŷ) + (1-y)·log(1-ŷ)]
+
+  python代码：
+    from sklearn.linear_model import LogisticRegression
+    model = LogisticRegression()
+    model.fit(X_train, y_train)
+    prob = model.predict_proba(X_test)[:, 1]
+
+【决策树分裂准则】
+  信息熵：H(S) = -Σ p_i·log₂(p_i)
+  信息增益：Gain = H(parent) - Σ (|S_v|/|S|)·H(S_v)
+  基尼系数：Gini = 1 - Σ p_i²（CART默认）
+
+  python代码：
+    from sklearn.tree import DecisionTreeClassifier
+    model = DecisionTreeClassifier(criterion='gini', max_depth=6)
+    model.fit(X_train, y_train)
+
+【随机森林 vs XGBoost】
+  随机森林：Bagging，独立训练多棵树，投票/平均，可并行，抗过拟合
+  XGBoost：Boosting，串行训练拟合残差，有正则化，精度更高
+
+  python代码：
+    from sklearn.ensemble import RandomForestClassifier
+    from xgboost import XGBClassifier
+    rf = RandomForestClassifier(n_estimators=100).fit(X, y)
+    xgb = XGBClassifier(n_estimators=100, learning_rate=0.1).fit(X, y)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+四、神经网络基础 ★★★★★
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【BatchNorm】★★★★★
+  训练：y = γ·(x - μ)/√(σ²+ε) + β    （μ,σ来自当前batch）
+  推理：用running mean/var
+
+  python代码：
+    # PyTorch
+    bn = nn.BatchNorm2d(num_features=64)
+    # 推理记得 set_eval()
+    model.eval()
+
+【Dropout】
+  训练：随机以概率 p 丢弃神经元
+  推理：保留全部，权重乘(1-p)（或训练时用inverted dropout）
+
+  python代码：
+    # PyTorch
+    class Net(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.net = nn.Sequential(
+                nn.Linear(784, 256),
+                nn.ReLU(),
+                nn.Dropout(0.5),   # 训练时随机丢弃50%
+                nn.Linear(256, 10)
+            )
+        def forward(self, x):
+            return self.net(x)
+
+【激活函数】
+  Sigmoid：  σ = 1/(1+e⁻ˣ)   输出(0,1)，易梯度消失
+  Tanh：     输出(-1,1)，零中心，仍易梯度消失
+  ReLU：     max(0, x)       输出[0,∞)，计算快，死神经元
+  LeakyReLU：max(0.01x, x)   死神经元少
+  GeLU：     x·Φ(x)          Transformer标配
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+五、CNN ★★★
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【卷积层参数量】
+  params = (K_h × K_w × C_in + 1) × C_out
+
+  python代码：
+    # 手动计算：输入32×32×3，3×3卷积核，64个输出通道
+    params = (3*3*3 + 1) * 64   # = 1792
+
+  输出尺寸：H_out = (H_in + 2×pad - K)/stride + 1
+
+【经典网络】
+  VGG-16：13层conv(3×3) + 3层FC，结构简单，参数量大
+  ResNet：残差连接 y = F(x) + x，解决深层网络退化问题
+
+  python代码（ResNet残差块）：
+    class ResidualBlock(nn.Module):
+        def forward(self, x):
+            out = self.conv(x)
+            out = out + x    # 残差连接
+            return F.relu(out)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+六、Transformer 与 Attention ★★★★★（最高频）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【Self-Attention 计算】★★★★★
+  Step 1: 打分      scores = QKᵀ / √d_k
+  Step 2: 归一化    attn_weights = softmax(scores, axis=-1)
+  Step 3: 加权求和  output = attn_weights @ V
+
+  √d_k 的作用：防止点积过大导致softmax梯度趋近0
+
+  python代码（PyTorch实现）：
+    import torch
+    import torch.nn.functional as F
+    import math
+
+    def self_attention(Q, K, V, d_k):
+        scores = Q @ K.transpose(-2, -1) / math.sqrt(d_k)
+        attn_weights = F.softmax(scores, dim=-1)
+        return attn_weights @ V, attn_weights
+
+    # Q,K,V = X @ W_q, X @ W_k, X @ W_v
+
+【Multi-Head Attention】
+  head_i = Attention(QW_i^Q, KW_i^K, VW_i^V)
+  MultiHead = Concat(head₁,...,head_h) · W_O
+  Transformer: h=8, d_model=512, d_k = d_v = 64
+
+【Transformer 架构】
+  Encoder = MultiHead Self-Attention + FFN + 残差 + LayerNorm
+  Decoder = Masked MHA + Cross-Attention + FFN + 残差 + LayerNorm
+  FFN(x) = max(0, xW₁+b₁)W₂+b₂
+
+【位置编码】
+  PE(pos, 2i)   = sin(pos / 10000^(2i/d))
+  PE(pos, 2i+1) = cos(pos / 10000^(2i/d))
+
+  python代码：
+    import numpy as np
+    def positional_encoding(seq_len, d_model):
+        PE = np.zeros((seq_len, d_model))
+        for pos in range(seq_len):
+            for i in range(0, d_model, 2):
+                PE[pos, i] = np.sin(pos / np.power(10000, 2*i/d_model))
+                PE[pos, i+1] = np.cos(pos / np.power(10000, 2*i/d_model))
+        return PE
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+七、优化器 ★★★
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【SGD / Momentum / Adam】
+
+  python代码：
+    import torch.optim as optim
+
+    # SGD + 动量
+    optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+
+    # Adam（最常用）
+    optimizer = optim.Adam(model.parameters(), lr=0.001,
+                           betas=(0.9, 0.999), eps=1e-8)
+
+    # 每步
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+【Adam 更新公式】（记住形式）
+  m_t = β₁·m_{t-1} + (1-β₁)·g_t      ← 一阶矩
+  v_t = β₂·v_{t-1} + (1-β₂)·g_t²    ← 二阶矩
+  m̂_t = m_t / (1-β₁ᵗ)               ← 偏置校正
+  v̂_t = v_t / (1-β₂ᵗ)
+  w_{t+1} = w_t - lr·m̂_t / (√v̂_t + ε)
+
+【学习率衰减】
+  # 余弦退火
+  scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+  # 阶梯衰减
+  scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+八、显存与计算量 ★★（常考估算题）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【显存组成】
+  显存 = 模型参数 + 梯度 + 优化器状态 + 激活值
+
+  全连接层：params = (d_in + 1) × d_out
+  优化器状态（Adam）：2 × params
+
+  # 例：1B参数，FP32，全连接
+  模型参数：1B × 4B = 4 GB
+  梯度：     1B × 4B = 4 GB
+  Adam状态： 1B × 4B × 2 = 8 GB
+  总计 ≈ 16 GB
+
+【混合精度训练】节省约一半显存
+  # PyTorch
+  from torch.cuda.amp import autocast, GradScaler
+  scaler = GradScaler()
+  with autocast():
+      output = model(x)
+      loss = criterion(output, y)
+  scaler.scale(loss).backward()
+  scaler.step(optimizer)
+  scaler.update()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+九、过拟合与正则化 ★★★
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+【判断】
+  欠拟合：训练、测试误差都高 → 加特征/提模型复杂度
+  过拟合：训练误差低、测试误差高 → 正则化/加数据/减特征
+
+  偏差-方差分解：E_test = Bias² + Variance + Irreducible Noise
+  欠拟合→高偏差；过拟合→高方差
+
+【处理手段】
+  L1/L2正则化、数据增强、Dropout、BatchNorm、早停、集成学习
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+十、类别不平衡处理 ★★
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ① 类别权重：class_weight = 'balanced'
+  ② 过采样：SMOTE
+  ③ 阈值调整：降低阈值提高召回
+  ④ 评估指标：AUC/F1代替Accuracy
+
+  python代码：
+    from sklearn.metrics import classification_report
+    from imblearn.over_sampling import SMOTE
+    from sklearn.utils.class_weight import compute_class_weight
+
+    # 类别权重
+    weights = compute_class_weight('balanced', classes=np.unique(y), y=y)
+    model = LogisticRegression(class_weight=dict(zip(np.unique(y), weights)))
+
+    # SMOTE过采样
+    X_res, y_res = SMOTE().fit_resample(X_train, y_train)
